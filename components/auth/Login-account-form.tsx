@@ -41,7 +41,6 @@ export default function LoginAccountForm() {
   });
 
   const onSubmit = async (values: Tform) => {
-    let loginError = "";
     try {
       const supabase = createClientComponentClient();
       const { email, password } = values;
@@ -52,7 +51,13 @@ export default function LoginAccountForm() {
         email,
         password,
       });
-      if (error) loginError = error.message;
+      if (error) {
+        form.setError("root.serverError", {
+          type: "400",
+          message: "Invalid Email or password",
+        });
+        return;
+      }
     } catch (error) {
       console.log("LoginAccountForm:onsubmit", error);
     }
@@ -97,6 +102,11 @@ export default function LoginAccountForm() {
               </FormItem>
             )}
           />
+          {form.formState.errors.root && (
+            <p className="text-red-500">
+              {form.formState.errors.root.serverError.message}
+            </p>
+          )}
           <Button type="submit">Log In</Button>
         </form>
       </Form>

@@ -18,15 +18,23 @@ import {
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 
-const formSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required." })
-    .email({ message: "Must be a valid email." }),
-  password: z
-    .string({ required_error: "Password is required" })
-    .min(7, { message: "Must have between 7 and 12 characters" })
-    .max(12, { message: "Must have between 7 and 12 characters" }),
-});
+const formSchema = z
+  .object({
+    email: z
+      .string({ required_error: "Email is required." })
+      .email({ message: "Must be a valid email." }),
+    password: z
+      .string({ required_error: "Password is required" })
+      .min(7, { message: "Must have between 7 and 12 characters" })
+      .max(12, { message: "Must have between 7 and 12 characters" }),
+    confirmPassword: z
+      .string({ required_error: "As senhas digitadas são diferentes." })
+      .min(7, { message: "Must have between 7 and 12 characters" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type Tform = z.infer<typeof formSchema>;
 
@@ -37,6 +45,7 @@ export default function CreateAccountForm() {
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -108,6 +117,24 @@ export default function CreateAccountForm() {
                   <Input placeholder="Password" {...field} type="password" />
                 </FormControl>
                 <FormDescription>This is your Password</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Confirm Password"
+                    {...field}
+                    type="password"
+                  />
+                </FormControl>
+                <FormDescription>Repeat your Password</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
