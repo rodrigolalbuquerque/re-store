@@ -35,7 +35,7 @@ export default async function UserApp() {
               <UserAppSidebar className="hidden lg:block" />
               <div className="col-span-3 lg:col-span-4 lg:border-l">
                 <div className="h-full px-4 py-6 lg:px-8">
-                  <Tabs defaultValue="documents" className="h-full space-y-6">
+                  <Tabs defaultValue="photos" className="h-full space-y-6">
                     <div className="space-between flex items-center">
                       <TabsList>
                         <TabsTrigger value="documents" className="relative">

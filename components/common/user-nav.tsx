@@ -40,7 +40,6 @@ export function UserNav() {
 
   useEffect(() => {
     getUser();
-    console.log("rodou");
   }, []);
 
   const handleSignOut = async () => {

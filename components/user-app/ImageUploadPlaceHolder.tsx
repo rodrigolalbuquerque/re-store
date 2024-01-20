@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
@@ -34,6 +35,17 @@ export function ImageUploadPlaceHolder() {
         file,
         preview: URL.createObjectURL(file),
       });
+
+      const supabase = createClientComponentClient();
+      const { data, error } = await supabase.storage
+        .from(process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER)
+        .upload(
+          `${process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER_PROCESSING}/${file.name}`,
+          file,
+        );
+      if (!error) {
+        setFileToProcess(data);
+      }
     } catch (error) {
       console.log("onDrop ", error);
     }
@@ -42,6 +54,7 @@ export function ImageUploadPlaceHolder() {
   useEffect(() => {
     return () => {
       if (file) URL.revokeObjectURL(file.preview);
+      if (restoredFile) URL.revokeObjectURL(restoredFile.preview);
     };
   }, []);
 
@@ -56,6 +69,29 @@ export function ImageUploadPlaceHolder() {
 
   const handleDialogOpenChange = async (e: boolean) => {
     console.log(e);
+  };
+
+  const handleEnhance = async () => {
+    try {
+      const supabase = createClientComponentClient();
+      const {
+        data: { publicUrl },
+      } = await supabase.storage
+        .from(process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER)
+        .getPublicUrl(`${fileToProcess?.path}`);
+
+      const res = await fetch("api/ai/replicate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl: publicUrl,
+        }),
+      });
+    } catch (error) {
+      console.log("handleEnhance: ", error);
+    }
   };
   return (
     <div className="flex h-[200px] shrink-0 items-center justify-center rounded-md border border-dashed">
@@ -98,7 +134,7 @@ export function ImageUploadPlaceHolder() {
                   <div className="cursor-pointer" {...getRootProps()}>
                     <input {...getInputProps()} />
                     <p
-                      className={`grid h-36 items-center rounded-md border border-dashed border-blue-300 bg-blue-100 p-6 text-center opacity-70 ${
+                      className={`grid h-36 items-center rounded-md border border-dashed border-blue-400 bg-blue-100 p-6 text-center opacity-70 ${
                         isDragActive ? "bg-blue-200" : "bg-blue-100"
                       }`}
                     >
@@ -122,10 +158,22 @@ export function ImageUploadPlaceHolder() {
                     </div>
                   </div>
                 )}
+                {restoredFile && (
+                  <div className="flex flex-row flex-wrap drop-shadow-md">
+                    <div className="relative flex h-48 w-48">
+                      <img
+                        className="h-48 w-48 rounded-md object-contain"
+                        src={restoredFile.preview}
+                        alt="imagePreview"
+                        onLoad={() => URL.revokeObjectURL(restoredFile.preview)}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
-              <Button>Enhance</Button>
+              <Button onClick={handleEnhance}>Enhance</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
