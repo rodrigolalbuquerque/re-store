@@ -35,8 +35,7 @@ export function ImageUploadPlaceHolder() {
         file,
         preview: URL.createObjectURL(file),
       });
-
-      console.log("File saved in the DB");
+      console.log("arquivo salvo");
 
       // const supabase = createClientComponentClient();
       // const { data, error } = await supabase.storage
@@ -71,10 +70,20 @@ export function ImageUploadPlaceHolder() {
   });
 
   const handleDialogOpenChange = async (isDialogOpen: boolean) => {
-    if (!isDialogOpen) setFile(null);
+    if (!isDialogOpen) {
+      setFile(null);
+      setRestoredFile(null);
+    }
+    console.log(`File: ${file}`);
+    console.log(`RestoreFile: ${restoredFile}`);
   };
 
   const handleEnhance = async () => {
+    if ((!file && !restoredFile) || (file && restoredFile)) {
+      console.log("Impossible to enhance");
+      return;
+    }
+
     try {
       const supabase = createClientComponentClient();
       const {
