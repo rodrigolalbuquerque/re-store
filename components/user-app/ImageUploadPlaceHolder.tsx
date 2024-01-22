@@ -36,16 +36,18 @@ export function ImageUploadPlaceHolder() {
         preview: URL.createObjectURL(file),
       });
 
-      const supabase = createClientComponentClient();
-      const { data, error } = await supabase.storage
-        .from(process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER)
-        .upload(
-          `${process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER_PROCESSING}/${file.name}`,
-          file,
-        );
-      if (!error) {
-        setFileToProcess(data);
-      }
+      console.log("File saved in the DB");
+
+      // const supabase = createClientComponentClient();
+      // const { data, error } = await supabase.storage
+      //   .from(process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER)
+      //   .upload(
+      //     `${process.env.NEXT_PUBLIC_SUPABASE_APP_BUCKET_IMAGE_FOLDER_PROCESSING}/${file.name}`,
+      //     file,
+      //   );
+      // if (!error) {
+      //   setFileToProcess(data);
+      // }
     } catch (error) {
       console.log("onDrop ", error);
     }
@@ -53,6 +55,7 @@ export function ImageUploadPlaceHolder() {
 
   useEffect(() => {
     return () => {
+      console.log("useEffect: unmount");
       if (file) URL.revokeObjectURL(file.preview);
       if (restoredFile) URL.revokeObjectURL(restoredFile.preview);
     };
@@ -67,8 +70,8 @@ export function ImageUploadPlaceHolder() {
     },
   });
 
-  const handleDialogOpenChange = async (e: boolean) => {
-    console.log(e);
+  const handleDialogOpenChange = async (isDialogOpen: boolean) => {
+    if (!isDialogOpen) setFile(null);
   };
 
   const handleEnhance = async () => {
@@ -88,6 +91,15 @@ export function ImageUploadPlaceHolder() {
         body: JSON.stringify({
           imageUrl: publicUrl,
         }),
+      });
+
+      const restoredImageUrl = await res.json();
+      const readImageRes = await fetch(restoredImageUrl.data);
+      const imageBlob = await readImageRes.blob();
+
+      setRestoredFile({
+        file: imageBlob,
+        preview: URL.createObjectURL(imageBlob),
       });
     } catch (error) {
       console.log("handleEnhance: ", error);
@@ -150,7 +162,7 @@ export function ImageUploadPlaceHolder() {
                   <div className="flex flex-row flex-wrap drop-shadow-md">
                     <div className="relative flex h-48 w-48">
                       <img
-                        className="h-48 w-48 rounded-md object-contain"
+                        className="w-60 rounded-md object-contain"
                         src={file.preview}
                         alt="imagePreview"
                         onLoad={() => URL.revokeObjectURL(file.preview)}
@@ -162,7 +174,7 @@ export function ImageUploadPlaceHolder() {
                   <div className="flex flex-row flex-wrap drop-shadow-md">
                     <div className="relative flex h-48 w-48">
                       <img
-                        className="h-48 w-48 rounded-md object-contain"
+                        className="w-60 rounded-md object-contain"
                         src={restoredFile.preview}
                         alt="imagePreview"
                         onLoad={() => URL.revokeObjectURL(restoredFile.preview)}
